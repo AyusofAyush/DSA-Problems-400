@@ -1,6 +1,6 @@
 # DSA 400
 
-A category-wise DSA revision sheet: **674 problems across 24 sections**, built for the last
+A category-wise DSA revision sheet: **767 problems across 24 sections**, built for the last
 week before interviews. A static page (`index.html`) backed by a Google Sheet that stores the
 problem list and your progress. No build step, no dependencies, no server.
 
@@ -26,7 +26,7 @@ problem list and your progress. No build step, no dependencies, no server.
 ```
 dsa-400/
 ├── index.html            # the page (deploy this)
-├── problems.csv          # the 674 problems — the source for the Sheet
+├── problems.csv          # the 767 problems — the source for the Sheet
 ├── apps-script/Code.gs   # Sheet API + CSV sync (paste into Apps Script)
 └── ONBOARDING.md         # how to add problems without breaking progress
 ```
@@ -35,7 +35,7 @@ dsa-400/
 
 | | Column | Owner | Notes |
 | --- | --- | --- | --- |
-| A–G | ID … Link | the CSV | `Category` and `Tag` follow the CSV, so problems can move sections safely |
+| A–G | ID … Link | the CSV | `Category`, `Difficulty`, `Tag` and `Link` follow the CSV, so problems can move sections and dead links get fixed |
 | H–I | Status, Last Reviewed | **you** | your progress — only the page's buttons write these |
 | J | Page | a formula | `#p-<ID>` link back to the page — never edit |
 | K | Priority | the CSV | `Must` / `High` / `Medium` / `Stretch` |

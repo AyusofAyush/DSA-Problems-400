@@ -39,7 +39,8 @@ const PRIORITIES = ["Must", "High", "Medium", "Stretch"];
  *   A..I  core problem + progress   Status / Last Reviewed (H:I) by set / bulk / reset; the rest by
  *                                   sync on append only -- except Category (B), rewritten when the
  *                                   CSV moves a problem to another section (same ID, same title),
- *                                   and Tag (F), which the CSV owns, per the policy below
+ *                                   and Difficulty (D), Tag (F) and Link (G), which the CSV owns,
+ *                                   per the policy below. A blank CSV Link never clears a cell.
  *   J     Page                      ARRAYFORMULA. Never written. Writing it breaks every link.
  *   K..N  meta                      written per the policy below
  *   O..   yours                     outside the schema: never read, never written
@@ -49,13 +50,23 @@ const PRIORITIES = ["Must", "High", "Medium", "Stretch"];
  *   never    you own it — the sync never changes it, the same as Status
  */
 const SYNC_POLICY = {
+  Difficulty: "replace", // D
   Tag: "replace", // F
+  Link: "replace", // G
   Priority: "replace", // K
   Premium: "replace", // L
   Remarks: "fill", // M
   Revisit: "never", // N
 };
-const SYNC_COL = { Tag: 6, Priority: 11, Premium: 12, Remarks: 13, Revisit: 14 };
+const SYNC_COL = {
+  Difficulty: 4,
+  Tag: 6,
+  Link: 7,
+  Priority: 11,
+  Premium: 12,
+  Remarks: 13,
+  Revisit: 14,
+};
 const METAI = { Priority: 0, Premium: 1, Remarks: 2, Revisit: 3 };
 const CSV_URL =
   "https://raw.githubusercontent.com/AyusofAyush/DSA-Problems-400/main/problems.csv";
@@ -489,7 +500,14 @@ function syncCsv_(dryRun) {
       conflicts = [];
     // What the sync will change, cell by cell. Nothing else on an existing row is written.
     const cats = {}; // B: rows that move section
-    const changes = { Tag: {}, Priority: {}, Premium: {} }; // F, K, L: CSV-owned cells that differ
+    // D, F, G, K, L: CSV-owned cells that differ
+    const changes = {
+      Difficulty: {},
+      Tag: {},
+      Link: {},
+      Priority: {},
+      Premium: {},
+    };
     const fills = []; // M: remarks for cells that are empty -- re-checked when written
     const countNew = (c) => {
       if (!known[norm_(c)]) newCats[c] = (newCats[c] || 0) + 1;
@@ -547,7 +565,9 @@ function syncCsv_(dryRun) {
         } else changes[name][i] = val;
         notes.push(name.toLowerCase() + ": " + problem);
       };
+      put("Difficulty", cell(r, "Difficulty"));
       put("Tag", cell(r, "Tag"));
+      put("Link", cell(r, "Link"));
       put("Priority", pri);
       put("Premium", prem);
       put("Remarks", rem);

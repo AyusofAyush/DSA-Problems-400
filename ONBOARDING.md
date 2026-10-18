@@ -58,11 +58,20 @@ row in it. That is how the `Union-Find (DSU)` section was carved out of the grap
 
 ---
 
+## Removing a problem
+
+The sync never deletes a row. Delete it from `problems.csv` (never reuse its ID), push, then
+delete the same row in the Sheet by hand — its Status, Remarks and Revisit go with it.
+Regenerate BUILTIN so the offline copy agrees.
+
+---
+
 ## What the sync will and will not touch
 
 | Column | Who owns it | On sync |
 | --- | --- | --- |
-| `A` ID · `C` Problem · `D` Difficulty · `E` Source · `G` Link | the CSV | written **only** when a new row is appended |
+| `A` ID · `C` Problem · `E` Source | the CSV | written **only** when a new row is appended |
+| `D` Difficulty · `G` Link | the CSV | replaced (a blank `Link` in the CSV never clears the cell) |
 | `B` Category | the CSV | on an existing row, rewritten **only** when the CSV moves it (see below) |
 | `F` Tag | the CSV | replaced (`Core` or blank) |
 | `H` Status · `I` Last Reviewed | **you** | **never** — only the page's buttons write these |
