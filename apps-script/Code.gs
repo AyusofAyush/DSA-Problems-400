@@ -31,6 +31,8 @@ const META = ["Priority", "Premium", "Remarks", "Revisit"]; // K, L, M, N
 const META_COL = 11; // K
 const READ_COLS = 14; // A:N
 const PRIORITIES = ["Must", "High", "Medium", "Stretch"];
+/** Last Reviewed (and every other date-time in the Sheet) is shown in this zone: IST, +05:30. */
+const TZ = "Asia/Kolkata";
 
 /**
  * THE SCHEMA. Every write in this file goes through one of these rules, so what may be
@@ -120,7 +122,7 @@ function setup() {
       .setAllowInvalid(false)
       .build();
   sh.getRange(2, 4, n).setDataValidation(dv(["Easy", "Medium", "Hard"]));
-  sh.getRange(2, 5, n).setDataValidation(dv(["LeetCode", "GFG"]));
+  sh.getRange(2, 5, n).setDataValidation(dv(["LeetCode", "GFG", "Custom"]));
   sh.getRange(2, 6, n).setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireValueInList(["Core"], true)
@@ -156,9 +158,14 @@ function setup() {
   Logger.log("WRITE_KEY = " + props.getProperty("WRITE_KEY"));
 }
 
-/** Adds the K..N headers, dropdowns and the Revisit checkbox rule. Changes no cell values. */
+/**
+ * Adds the K..N headers, dropdowns and the Revisit checkbox rule, and puts the Sheet on TZ.
+ * Changes no cell values, except Last Reviewed once, when the zone actually switches.
+ */
 function upgradeSchema() {
-  const sh = SpreadsheetApp.getActive().getSheetByName(SHEET);
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getSheetByName(SHEET);
+  useTimeZone_(ss, sh);
   const head = sh.getRange(1, META_COL, 1, META.length);
   if (head.getValues()[0].join("|") !== META.join("|"))
     head.setValues([META]).setFontWeight("bold");
@@ -180,11 +187,31 @@ function upgradeSchema() {
   sh.getRange(2, META_COL + 3, n).setDataValidation(
     SpreadsheetApp.newDataValidation().requireCheckbox().build(),
   );
-  SpreadsheetApp.getActive().toast(
-    "Priority / Premium / Remarks / Revisit ready.",
-    "DSA 400",
-    5,
-  );
+  ss.toast("Priority / Premium / Remarks / Revisit ready.", "DSA 400", 5);
+}
+
+/**
+ * Switch the Sheet to TZ. A date-time cell stores wall-clock time with no zone, so switching
+ * alone would leave every earlier review reading in the old zone: read Last Reviewed as instants
+ * under the old zone, switch, then write the same instants back. A no-op once on TZ.
+ */
+function useTimeZone_(ss, sh) {
+  if (ss.getSpreadsheetTimeZone() === TZ) return;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const last = lastDataRow_(sh);
+    const v = last < 2 ? [] : sh.getRange(2, 9, last - 1, 1).getValues();
+    ss.setSpreadsheetTimeZone(TZ);
+    SpreadsheetApp.flush();
+    const at = {};
+    v.forEach((r, i) => {
+      if (r[0] instanceof Date) at[i] = r[0];
+    });
+    writeCells_(sh, 9, at);
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /** Blank Status -> Missed, blank ID -> next number. Runs on setup and on every read. */

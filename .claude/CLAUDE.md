@@ -57,6 +57,9 @@ replace / fill / never rules. Change ownership there, not in scattered `if`s.
   (ignoring J and FALSE) before appending; otherwise it reports `STOPPED — row N` and writes nothing.
 - `upgradeSchema()` writes the K1:N1 headers only if they differ, and the sync re-runs it only
   after appending — so a sync with nothing to do makes zero writes.
+- The Sheet's zone is `TZ` (`Asia/Kolkata`, IST). Date-time cells store zone-less wall-clock time,
+  so `useTimeZone_` (called by `upgradeSchema`) reads Last Reviewed as instants, switches the zone,
+  and writes those instants back — once; on `TZ` it is a no-op. Never just flip the zone setting.
 - `lastDataRow_` scans column C; `getLastRow()` is unreliable under the J1 formula and checkboxes.
 - All writers take `LockService.getScriptLock()`.
 
@@ -89,7 +92,7 @@ Other menu items: **Upgrade schema** (headers + dropdowns + checkbox rule, no va
 
 ## Page (index.html)
 
-- `fromSheet` maps rows to `{id, t, d:E|M|H, s:L|G, g:C|"", k, u, st, at, p, pm, rm, rv}`.
+- `fromSheet` maps rows to `{id, t, d:E|M|H, s:L|G|X (Custom), g:C|"", k, u, st, at, p, pm, rm, rv}`.
   A legacy `Teradata` tag reads as `C` so an un-synced Sheet still works; the tag is retired.
 - `groups()`: sections are categories normally, priority buckets while a Review filter is on —
   each problem renders in exactly one section, so `#p-<id>` stays unique. `refreshRow` falls back

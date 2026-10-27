@@ -187,10 +187,10 @@ rows,topics,seen=[],[],{}
 for x in csv.DictReader(open("problems.csv",newline="",encoding="utf-8")):
     if not x["Problem"].strip(): continue
     d={"e":"E","h":"H"}.get(x["Difficulty"][:1].lower(),"M")
-    src="G" if x["Source"][:1].lower()=="g" else "L"
+    src={"g":"G","c":"X"}.get(x["Source"][:1].lower(),"L")
     slug=re.sub(r"(^-|-$)","",re.sub(r"[\s-]+","-",re.sub(r"[^a-z0-9 \-]","",x["Problem"].lower().replace("'",""))))
     u=x["Link"] or (f"https://leetcode.com/problems/{slug}/" if src=="L"
-        else "https://www.google.com/search?q="+urllib.parse.quote_plus("geeksforgeeks practice "+x["Problem"]))
+        else "https://www.google.com/search?q="+urllib.parse.quote_plus(("geeksforgeeks practice " if src=="G" else "")+x["Problem"]))
     k=x["Category"] or "Uncategorized"
     o={"id":int(x["ID"]),"t":x["Problem"],"d":d,"s":src,
        "g":"C" if x["Tag"][:1].lower() in ("c","t") else "","k":k,"u":u}
